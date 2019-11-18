@@ -1,5 +1,8 @@
 import requests
 from itertools import count
+from dotenv import load_dotenv
+import os
+from terminaltables import AsciiTable
 
 
 def predict_rub_salary_hh(job_title):
@@ -27,12 +30,12 @@ def predict_rub_salary_hh(job_title):
 
 
 def predict_rub_salary_sj(job_title):
+    sj_api_key = os.getenv('SUPERJOB_API_KEY')
     salary_of_various_vacancies_sj = []
     salary_statistics_sj = {}
     for page in count(0):
         url = 'https://api.superjob.ru/2.27/vacancies'
-        headers = {'X-Api-App-Id': 'v3.r.131240819.c88ba89c9389ac1ef1c5c98ef8dd98263f535d8f'
-                                   '.f9d7c1bb29e616d4e391144493bf0e8ecd36d51e'}
+        headers = {'X-Api-App-Id': sj_api_key}
         parametres = {'keyword': 'программист {}'.format(job_title), 'town': '4', 'catalogues': '48', 'page': page,
                       'count': '100'}
         page_response = requests.get(url, headers=headers, params=parametres)
@@ -52,8 +55,7 @@ def predict_rub_salary_sj(job_title):
         salary_statistics_sj['vacancies_processed'] = len(salary_of_various_vacancies_sj)
         salary_statistics_sj['average_salary'] = (
             int(sum(salary_of_various_vacancies_sj) / len(salary_of_various_vacancies_sj)))
-    return salary_statistics_sj
-
+        return salary_statistics_sj
 
 def predict_salary(salary_from, salary_to):
     if salary_from is None and salary_to is not None:
@@ -68,11 +70,27 @@ def predict_salary(salary_from, salary_to):
         None
 
 
-popular_programming_languages = ['Python', 'Java', 'Javascript', 'Ruby', 'Objective-C', 'Swift', 'Go', 'Shell']
-language_salary_statistics_hh = {}
-language_salary_statistics_sj = {}
-for programming_language in popular_programming_languages:
-    language_salary_statistics_hh['{}'.format(programming_language)] = predict_rub_salary_hh(programming_language)
-    language_salary_statistics_sj['{}'.format(programming_language)] = predict_rub_salary_sj(programming_language)
-print(language_salary_statistics_sj)
-print(language_salary_statistics_hh)
+def statistics_table(language_salary_statistics, title):
+    TABLE_DATA = [['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата'], ]
+    for programming_language in language_salary_statistics.keys():
+        current_language_ststistics = [programming_language]
+        if language_salary_statistics[programming_language] is not None:
+            for statistics_category in language_salary_statistics[programming_language].keys():
+                current_language_ststistics.append(language_salary_statistics[programming_language][statistics_category])
+        TABLE_DATA.append(current_language_ststistics)
+    table_instance = AsciiTable(TABLE_DATA, title)
+    table_instance.justify_columns[2] = 'right'
+    print(table_instance.table)
+    print()
+
+
+if __name__ == '__main__':
+    load_dotenv()
+    popular_programming_languages = ['Python', 'Java', 'Javascript', 'Ruby', 'Objective-C', 'C#', '1C', 'Shell']
+    language_salary_statistics_hh = {}
+    language_salary_statistics_sj = {}
+    for programming_language in popular_programming_languages:
+        language_salary_statistics_hh['{}'.format(programming_language)] = predict_rub_salary_hh(programming_language)
+        language_salary_statistics_sj['{}'.format(programming_language)] = predict_rub_salary_sj(programming_language)
+    statistics_table(language_salary_statistics_sj, 'SuperJob Moscow')
+    statistics_table(language_salary_statistics_hh, 'HeadHunter Moscow')
