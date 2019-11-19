@@ -51,7 +51,7 @@ def predict_rub_salary_sj(job_title, api_key):
             superjob_salary_to = vacancy['payment_to']
             superjob_salary_from = vacancy['payment_from']
             if superjob_salary_from == 0 and superjob_salary_to == 0:
-                break
+                continue
             salary_of_various_vacancies_sj.append(
                 predict_salary(superjob_salary_from, superjob_salary_to))
         if not page_response_json['more']:
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     popular_programming_languages = ['Python', 'Java',
                                      'Javascript', 'Ruby',
                                      'Objective-C', 'C#',
-                                     '1C', 'Shell']
+                                     '1C', 'C++']
     language_salary_statistics_hh = {}
     language_salary_statistics_sj = {}
     for programming_language in popular_programming_languages:
