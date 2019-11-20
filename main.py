@@ -14,9 +14,9 @@ def predict_rub_salary_hh(job_title):
                       'area': '1', 'period': '30',
                       'only_with_salary': 'true', 'page': page}
         page_response = requests.get(url, params=parametres)
-        page_response_json = page_response.json()
-        pages_number = page_response_json['pages']
-        for vacancy in page_response_json['items']:
+        page_response_formatted = page_response.json()
+        pages_number = page_response_formatted['pages']
+        for vacancy in page_response_formatted['items']:
             if vacancy['salary']['currency'] != 'RUR':
                 continue
             salary_from_on_hh = vacancy['salary']['from']
@@ -25,7 +25,7 @@ def predict_rub_salary_hh(job_title):
                 predict_salary(salary_from_on_hh, salary_to_on_hh))
         if page >= pages_number:
             break
-    salary_statistics_hh['vacancies_found'] = page_response_json['found']
+    salary_statistics_hh['vacancies_found'] = page_response_formatted['found']
     salary_statistics_hh['vacancies_processed'] = len(
         salary_of_various_vacancies_hh)
     salary_statistics_hh['average_salary'] = (
@@ -44,8 +44,8 @@ def predict_rub_salary_sj(job_title, api_key):
                       'town': '4', 'catalogues': '48',
                       'page': page, 'count': '100'}
         page_response = requests.get(url, headers=headers, params=parametres)
-        page_response_json = page_response.json()
-        for vacancy in page_response_json['objects']:
+        page_response_formatted = page_response.json()
+        for vacancy in page_response_formatted['objects']:
             if vacancy['currency'] != 'rub':
                 continue
             superjob_salary_to = vacancy['payment_to']
@@ -54,10 +54,10 @@ def predict_rub_salary_sj(job_title, api_key):
                 continue
             salary_of_various_vacancies_sj.append(
                 predict_salary(superjob_salary_from, superjob_salary_to))
-        if not page_response_json['more']:
+        if not page_response_formatted['more']:
             break
     if len(salary_of_various_vacancies_sj) != 0:
-        salary_statistics_sj['vacancies_found'] = page_response_json['total']
+        salary_statistics_sj['vacancies_found'] = page_response_formatted['total']
         salary_statistics_sj['vacancies_processed'] = len(
             salary_of_various_vacancies_sj)
         salary_statistics_sj['average_salary'] = (
